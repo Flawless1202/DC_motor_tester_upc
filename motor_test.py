@@ -16,19 +16,12 @@ class main_frame(wx.Frame):
         wx.Frame.__init__(self, parent, title=title)
         self.motor_data = {}
         self.data_list = {}
+        self.print_txt = ""
         self.motor_data_num = 0
         self.create_menu()
         self.create_frame_panel()
         self.do_layout()
         self.button_bind()
-
-    # 输入接口
-    def create_interior_window_components(self):
-        pass
-
-    # 输出接口
-    def create_exterior_window_components(self):
-        self.CreateStatusBar()
 
     # 显示面板
     def create_frame_panel(self):
@@ -111,6 +104,7 @@ class main_frame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.data_plot, self.button_plot)
         self.Bind(wx.EVT_BUTTON, self.data_calculate, self.button_calculate)
         self.Bind(wx.EVT_BUTTON, self.data_statistics, self.button_statistics)
+        self.Bind(wx.EVT_BUTTON, self.on_save_as, self.button_print)
 
     # 导入数据
     def data_input(self, event):
@@ -274,8 +268,8 @@ class main_frame(wx.Frame):
 
     # 事件处理
     def on_about(self, event):
-        dialog = wx.MessageDialog(self, 'A sample editor\n'
-                                  'in wxPython', 'About Sample Editor', wx.OK)
+        dialog = wx.MessageDialog(self, u'同济大学TUSmart智能车队\n'
+                                  u'电机测试台项目小组', '关于', wx.OK)
         dialog.ShowModal()
         dialog.Destroy()
 
@@ -300,9 +294,59 @@ class main_frame(wx.Frame):
     #         textfile.close()
 
     def on_help(self, event):
-        if self.ask_user_for_filename(defaultFile=self.filename, style=wx.SAVE,
-                                      **self.default_file_dialog_options()):
-            self.on_save(event)
+        help_window = help_txt(self, u"电机测试台上位机使用帮助文档")
+        help_window.Show()
+
+    def on_save_as(self, event):
+        print_data = []
+        selected_num = self.data_list.GetSelectedItemCount()
+        print_data.append(self.data_list.GetFirstSelected())
+        for i in range(1, selected_num):
+            print_data.append(
+                self.data_list.GetNextSelected(print_data[-1]))
+
+        for i in range(0, selected_num):
+            print_data[i] = self.data_list.GetItemText(print_data[i])
+            data_print = self.motor_data[print_data[i]]
+            self.print_txt = "#电机试验台计算结果报告\n"
+            self.print_txt = self.print_txt + "\n##原始数据的统计结果为：\n"
+            self.print_txt = self.print_txt + \
+                "\n|　  |电压(V)|电流(A)|角速度(rad/s)|\n"
+            self.print_txt = self.print_txt + "|----|-------|-------|-------------|\n"
+            self.print_txt = self.print_txt + "|平均值|%s|%s|%s|\n" % (data_print.get_data_mean(
+            )['voltage'], data_print.get_data_mean()['current'], data_print.get_data_mean()['roll_rate'])
+            self.print_txt = self.print_txt + "|方差|%s|%s|%s|\n" % (data_print.get_data_var(
+            )['voltage'], data_print.get_data_var()['current'], data_print.get_data_var()['roll_rate'])
+
+            self.print_txt = self.print_txt + "\n##参数计算结果为：\n"
+            self.print_txt = self.print_txt + "\n###不考虑摩擦转矩的计算结果为：\n"
+            self.print_txt = self.print_txt + "|　  |k_E|L_m|R_m|\n"
+            self.print_txt = self.print_txt + "|----|-------|-------|-------------|\n"
+            self.print_txt = self.print_txt + "| |%s|%s|%s|\n" % (data_print.get_solve('easy'
+                                                                                       )['k_E'], data_print.get_solve('easy')['L_m'], data_print.get_solve('easy')['R_m'])
+            self.print_txt = self.print_txt + "|平均值|%s|%s|%s|\n" % (data_print.get_check_mean('easy'
+                                                                                              )['k_E'], data_print.get_check_mean('easy')['L_m'], data_print.get_check_mean('easy')['R_m'])
+            self.print_txt = self.print_txt + "|方差|%s|%s|%s|\n" % (data_print.get_check_var('easy'
+                                                                                            )['k_E'], data_print.get_check_var('easy')['L_m'], data_print.get_check_var('easy')['R_m'])
+            self.print_txt = self.print_txt + "\n###考虑摩擦转矩的计算结果为：\n"
+            self.print_txt = self.print_txt + "|　  |k_E|L_m|R_m|f_m|\n"
+            self.print_txt = self.print_txt + "|----|-------|-------|-------|------|\n"
+            self.print_txt = self.print_txt + "| |%s|%s|%s|%s|\n" % (data_print.get_solve('hard'
+                                                                                          )['k_E'], data_print.get_solve('hard')['L_m'], data_print.get_solve('hard')['R_m'], data_print.get_solve('hard')['f_m'])
+            self.print_txt = self.print_txt + "|平均值|%s|%s|%s|%s|\n" % (data_print.get_check_mean('hard'
+                                                                                                 )['k_E'], data_print.get_check_mean('hard')['L_m'], data_print.get_check_mean('hard')['R_m'], data_print.get_check_mean('hard')['f_m'])
+            self.print_txt = self.print_txt + "|方差|%s|%s|%s|%s|\n" % (data_print.get_check_var('hard'
+                                                                                               )['k_E'], data_print.get_check_var('hard')['L_m'], data_print.get_check_var('hard')['R_m'], data_print.get_check_var('hard')['f_m'])
+            self.print_txt = self.print_txt + \
+                "\n注意：以上平均值与方差都是将数据平均分为%s组后分别计算的统计结果\n" % data_print.get_group_num()
+            if self.ask_user_for_filename(defaultFile=self.filename, style=wx.SAVE,
+                                          **self.default_file_dialog_options()):
+                self.on_save(event)
+
+    def on_save(self, event):
+        textfile = open(os.path.join(self.dirname, self.filename), 'w')
+        textfile.write(self.print_txt)
+        textfile.close()
 
 
 class display_frame(wx.Frame):
@@ -508,7 +552,24 @@ class data_print_frame(wx.Frame):
         self.SetSizerAndFit(self.box_sizer)
 
 
+class help_txt(wx.Frame):
+    def __init__(self, parent, title):
+        self.dirname = ''
+        wx.Frame.__init__(self, parent, title=title, size=(600, 500))
+        self.help_text = u"\n导入数据：点击按钮，可以选择需要的文档，将数据导入界面\n"
+        self.help_text = self.help_text + u"\n删除数据：选中需删除的项目，点击此按钮，数据不再在界面中\n"
+        self.help_text = self.help_text + u"\n合并数据：可选择多个数据，点此按钮后，合并为一个新的数据\n"
+        self.help_text = self.help_text + u"\n显示数据：将选中的项目显示出来\n"
+        self.help_text = self.help_text + u"\n统计特性：显示选中项目的均值及方差\n"
+        self.help_text = self.help_text + u"\n绘制图像：用项目中的数据绘制出图像\n"
+        self.help_text = self.help_text + \
+            u"\n参数估计：得到不考虑摩擦转矩时的k_E、L_m、R_m，以及考虑摩擦转矩时的k_E、L_m、R_m、f_m\n"
+        self.help_text = self.help_text + u"\n打印报告：生成一份包含实验参数的文档报告\n"
+        self.txt = wx.TextCtrl(self, value=self.help_text,
+                               style=wx.TE_MULTILINE | wx.TE_READONLY)
+
+
 app = wx.App(False)
-frame = main_frame(None, u"电机测试台程序")
+frame = main_frame(None, u"电机测试台上位机程序")
 frame.Show()
 app.MainLoop()

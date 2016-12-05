@@ -81,6 +81,9 @@ class data(object):
 	def get_init_data(self):
 		return self.init_data
 
+	def get_group_num(self):
+		return self.group_num
+
 
 	# 得到拟合的结果
 	# mode'easy'返回不考虑摩擦转矩的结果，'hard'返回考虑摩擦转矩的结果，下同
