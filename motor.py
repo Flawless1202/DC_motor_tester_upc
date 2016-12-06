@@ -17,6 +17,11 @@ class data(object):
 
 	def data_join(self, con_cat):
 		self.init_data = np.concatenate((self.init_data, con_cat), axis=0)
+		end_time = self.init_data[-1,0]
+		num = int(con_cat.shape[0])
+		for i in range(0,num):
+			con_cat[i,0] = con_cat[i,0] + end_time
+		self.init_data = np.concatenate((self.init_data, con_cat), axis=0)
 		self.data_preprocess()
 		self.data_process()
 
