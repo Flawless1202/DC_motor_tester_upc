@@ -463,7 +463,10 @@ class calculate_frame(wx.Frame):
 
     def data_print(self, event):
         group_num = int(self.data_text.GetValue())
-        frame = data_print_frame(self, u'估计结果统计特性分析', self.data, group_num)
+        self.data.set_group_num(group_num)
+        self.data.data_process()
+        frame = data_print_frame(
+            self, u'估计结果统计特性分析', self.data, self.data.get_group_num())
         frame.Show()
 
 

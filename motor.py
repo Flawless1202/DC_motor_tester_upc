@@ -10,6 +10,7 @@ class data(object):
 	def __init__(self, filename):
 		self.loadtxt(filename)
 		self.data_preprocess()
+		self.set_group_num()	# 默认值为10
 		self.data_process()
 
 	def loadtxt(self, filename):
@@ -49,7 +50,6 @@ class data(object):
 		self.data = np.column_stack((self.data_time, self.data_voltage, self.data_current, self.data_roll_rate)) # 由时间、电压、电流和角速度组成的数据矩阵
 		self.solve('easy')  # solve_data_easy，不考虑摩擦转矩的结果,调用方法self.solve_data_easy['R_m']，下同
 		self.solve('hard')	# solve_data_hard,考虑摩擦转矩的结果
-		self.set_group_num()	# 默认值为10
 		self.check('easy')	# check_data_easy,分组计算的结果，不考虑摩擦转矩
 		self.check('hard')	# check_data_hard,分组计算的结果，考虑摩擦转矩
 							# check_easy_mean check_hard_mean，分组计算结果的平均数
