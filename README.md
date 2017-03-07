@@ -9,7 +9,12 @@
 - motor.py 电机数据处理类库
 - motor_test.py 应用程序
 
+# python版本
+本项目使用python2.7版本
+
 ## 依赖包
 
 - wxpython
+- numpy
+- matplotlib
 
